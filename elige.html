@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Forex Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f, #2d2d2d);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #b0b0b0;
+        }
+        
+        .card {
+            background: #1e1e1e;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            color: #b0b0b0;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: #2d2d2d;
+            color: #ffffff;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .col {
+            flex: 1;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #2d2d2d;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #b0b0b0;
+        }
+        
+        .tab.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn {
+            width: 100%;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+            background: #2980b9;
+        }
+        
+        .results {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-highlight {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .risk-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .risk-low { background: #155724; color: #d4edda; }
+        .risk-medium { background: #856404; color: #fff3cd; }
+        .risk-high { background: #721c24; color: #f8d7da; }
+        
+        .info-text {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Forex Calculator</h1>
+            <p>Calcula tu posición fácilmente</p>
+        </div>
+        
+        <!-- Capital -->
+        <div class="card">
+            <div class="section-title">💼 Capital</div>
+            <div class="input-group">
+                <label>Saldo de la cuenta ($)</label>
+                <input type="number" id="balance" value="10000">
+                <div class="info-text">Tu capital total para trading</div>
+            </div>
+        </div>
+        
+        <!-- Riesgo -->
+        <div class="card">
+            <div class="section-title">🎯 Riesgo</div>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="setRiskMethod('percent')">%</div>
+                <div class="tab" onclick="setRiskMethod('fixed')">$ Fijo</div>
+            </div>
+            
+            <div id="percentRisk">
+                <div class="input-group">
+                    <label>Riesgo (%)</label>
+                    <input type="number" id="riskPercent" value="2" step="0.1" min="0.1" max="10">
+                    <div class="info-text">Recomendado: 1-2%</div>
+                </div>
+                <div class="result-item">
+                    <span>Monto riesgo:</span>
+                    <span id="riskAmount">$200.00</span>
+                </div>
+            </div>
+            
+            <div id="fixedRisk" style="display: none;">
+                <div class="input-group">
+                    <label>Riesgo ($)</label>
+                    <input type="number" id="riskFixed" value="200">
+                </div>
+                <div class="result-item">
+                    <span>% del capital:</span>
+                    <span id="riskPercentDisplay">2.0%</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Operación -->
+        <div class="card">
+            <div class="section-title">⚙️ Operación</div>
+            
+            <div class="row">
+                <div class="col">
+                    <div class="input-group">
+                        <label>Par</label>
+                        <select id="pair">
+                            <option value="EUR/USD">EUR/USD</option>
+                            <option value="GBP/USD">GBP/USD</option>
+                            <option value="USD/JPY">USD/JPY</option>
+                            <option value="AUD/USD">AUD/USD</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="input-group">
+                        <label>Apalancamiento</label>
+                        <select id="leverage">
+                            <option value="30">1:30</option>
+                            <option value="50">1:50</option>
+                            <option value="100">1:100</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col">
+                    <div class="input-group">
+                        <label>Stop Loss (pips)</label>
+                        <input type="number" id="sl" value="30">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="input-group">
+                        <label>Take Profit (pips)</label>
+                        <input type="number" id="tp" value="60">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn" onclick="calculate()">📊 Calcular</button>
+        
+        <!-- Resultados -->
+        <div id="results" class="card results">
+            <div class="section-title">📈 Resultados</div>
+            
+            <div class="result-item">
+                <span>Lotes:</span>
+                <span id="resultLots">0.00</span>
+            </div>
+            
+            <div class="result-item">
+                <span>Unidades:</span>
+                <span id="resultUnits">0</span>
+            </div>
+            
+            <div class="result-item">
+                <span>Riesgo:</span>
+                <span id="resultRisk">$0.00</span>
+            </div>
+            
+            <div class="result-item">
+                <span>Margen:</span>
+                <span id="resultMargin">$0.00</span>
+            </div>
+            
+            <div class="result-item">
+                <span>Valor/pip:</span>
+                <span id="resultPipValue">$0.00</span>
+            </div>
+            
+            <div class="result-highlight">
+                <div>Ganancia potencial:</div>
+                <div style="font-size: 1.3rem; font-weight: bold;" id="resultProfit">$0.00</div>
+            </div>
+            
+            <div class="result-item">
+                <span>Nivel riesgo:</span>
+                <span id="resultRiskLevel">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let riskMethod = 'percent';
+        
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRiskDisplay();
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            ['balance', 'riskPercent', 'riskFixed', 'sl', 'tp'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateRiskDisplay);
+            });
+        }
+        
+        function setRiskMethod(method) {
+            riskMethod = method;
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('percentRisk').style.display = method === 'percent' ? 'block' : 'none';
+            document.getElementById('fixedRisk').style.display = method === 'fixed' ? 'block' : 'none';
+            
+            updateRiskDisplay();
+        }
+        
+        function updateRiskDisplay() {
+            const balance = parseFloat(document.getElementById('balance').value) || 0;
+            
+            if (riskMethod === 'percent') {
+                const riskPercent = parseFloat(document.getElementById('riskPercent').value) || 0;
+                const riskAmount = balance * (riskPercent / 100);
+                document.getElementById('riskAmount').textContent = `$${riskAmount.toFixed(2)}`;
+            } else {
+                const riskFixed = parseFloat(document.getElementById('riskFixed').value) || 0;
+                const riskPercent = balance > 0 ? (riskFixed / balance * 100) : 0;
+                document.getElementById('riskPercentDisplay').textContent = `${riskPercent.toFixed(1)}%`;
+            }
+        }
+        
+        function calculate() {
+            // Datos básicos
+            const balance = parseFloat(document.getElementById('balance').value) || 0;
+            const sl = parseFloat(document.getElementById('sl').value) || 0;
+            const tp = parseFloat(document.getElementById('tp').value) || 0;
+            const leverage = parseFloat(document.getElementById('leverage').value);
+            const pair = document.getElementById('pair').value;
+            
+            // Calcular riesgo
+            let risk;
+            if (riskMethod === 'percent') {
+                const riskPercent = parseFloat(document.getElementById('riskPercent').value) || 0;
+                risk = balance * (riskPercent / 100);
+            } else {
+                risk = parseFloat(document.getElementById('riskFixed').value) || 0;
+            }
+            
+            // Validar
+            if (!balance || !risk || !sl) {
+                alert('Completa los datos requeridos');
+                return;
+            }
+            
+            // Valor pip por par
+            const pipValues = {
+                'EUR/USD': 10, 'GBP/USD': 10, 'AUD/USD': 10, 'USD/JPY': 9
+            };
+            const pipValue = pipValues[pair] || 10;
+            
+            // Cálculos
+            const riskPerLot = sl * pipValue;
+            const lots = risk / riskPerLot;
+            const units = lots * 100000;
+            const margin = (lots * 100000) / leverage;
+            const pipVal = lots * pipValue;
+            const profit = tp * pipVal;
+            const riskPercent = (risk / balance * 100);
+            
+            // Mostrar resultados
+            document.getElementById('resultLots').textContent = lots.toFixed(2);
+            document.getElementById('resultUnits').textContent = Math.round(units).toLocaleString();
+            document.getElementById('resultRisk').textContent = `$${risk.toFixed(2)}`;
+            document.getElementById('resultMargin').textContent = `$${margin.toFixed(2)}`;
+            document.getElementById('resultPipValue').textContent = `$${pipVal.toFixed(2)}`;
+            document.getElementById('resultProfit').textContent = `$${profit.toFixed(2)}`;
+            
+            // Nivel de riesgo
+            let riskLevel, riskClass;
+            if (riskPercent > 5) {
+                riskLevel = 'ALTO'; riskClass = 'risk-high';
+            } else if (riskPercent > 2) {
+                riskLevel = 'MEDIO'; riskClass = 'risk-medium';
+            } else {
+                riskLevel = 'BAJO'; riskClass = 'risk-low';
+            }
+            document.getElementById('resultRiskLevel').innerHTML = `<span class="risk-badge ${riskClass}">${riskLevel}</span>`;
+            
+            // Mostrar resultados
+            document.getElementById('results').classList.add('show');
+        }
+    </script>
+</body>
+</html>
